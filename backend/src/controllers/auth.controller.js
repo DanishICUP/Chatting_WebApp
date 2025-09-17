@@ -2,7 +2,7 @@ import validator from 'validator'
 import userModel from '../models/User.model.js'
 import bcrypt from 'bcrypt'
 import generateToken from '../lib/generateToken.js'
-import { sendWelcomeEmail } from '../emails/emailHandler.js'
+// import { sendWelcomeEmail } from '../emails/emailHandler.js'
 import 'dotenv/config'
 import cloudinary from '../lib/cloudinary.js'
 
@@ -44,11 +44,11 @@ export const signup = async (req, res) => {
                 profilepic: newUser.profilepic
             })
 
-            try {
-                await sendWelcomeEmail(newUser.email, newUser.fullname, process.env.CLIENT_URL)
-            } catch (err) {
-                console.log("faild to send email", err)
-            }
+            // try {
+            //     await sendWelcomeEmail(newUser.email, newUser.fullname, process.env.CLIENT_URL)
+            // } catch (err) {
+            //     console.log("faild to send email", err)
+            // }
         } else {
             return res.status(400).json({ success: false, message: "invalid user credientials" })
         }
