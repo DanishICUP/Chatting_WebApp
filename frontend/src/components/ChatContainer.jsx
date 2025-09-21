@@ -43,10 +43,10 @@ const ChatContainer = () => {
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`chat ${msg.senderId === authUser._id.toString() ? "chat-end" : "chat-start"}`}
+                className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
               >
                 <div
-                  className={`chat-bubble relative ${msg.senderId === authUser._id.toString()
+                  className={`chat-bubble relative ${msg.senderId === authUser._id
                     ? "bg-cyan-600 text-white"
                     : "bg-slate-800 text-slate-200"
                     }`}
