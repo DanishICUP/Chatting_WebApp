@@ -1,38 +1,47 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { UseChatStore } from '../store/USeChatStore'
-import { useAuthStore } from '../store/UseAuthStore'
-import ChatHeader from './ChatHeader'
-import NoChatHistoryPlaceholder from './NoChatHistoryPlaceholder'
-import MessageInput from './MessageInput'
-import MessagesLoadingSkeleton from '../components/MessageSkeletion'
-import ImagePreviewModel from './ImagePreviewModel'
+import React, { useEffect, useRef, useState } from "react";
+import { UseChatStore } from "../store/USeChatStore";
+import { useAuthStore } from "../store/UseAuthStore";
+import ChatHeader from "./ChatHeader";
+import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
+import MessageInput from "./MessageInput";
+import MessagesLoadingSkeleton from "../components/MessageSkeletion";
+import ImagePreviewModel from "./ImagePreviewModel";
 
 const ChatContainer = () => {
+  const {
+    getMessagesByUserId,
+    selectedUser,
+    messages,
+    isMessagesLoading,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = UseChatStore();
 
-  const { getMessagesByUserId, selectedUser, messages, isMessagesLoading, subscribeToMessages, unsubscribeFromMessages } = UseChatStore()
-  const { authUser } = useAuthStore()
-  const [selectedImage, setSelectedImage] = useState(null)
+  const { authUser } = useAuthStore();
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const messagesRef = useRef(null)
+  const messagesRef = useRef(null);
 
-
+  // Load messages when user is selected
   useEffect(() => {
     if (selectedUser?._id) {
-      getMessagesByUserId(selectedUser._id)
-      subscribeToMessages()
+      getMessagesByUserId(selectedUser._id);
+      subscribeToMessages();
 
-      return () => unsubscribeFromMessages()
+      return () => unsubscribeFromMessages();
     }
-  }, [getMessagesByUserId, selectedUser, subscribeToMessages, unsubscribeFromMessages])
+  }, [getMessagesByUserId, selectedUser, subscribeToMessages, unsubscribeFromMessages]);
 
+  // Auto scroll to latest message
   useEffect(() => {
     if (messagesRef.current) {
-      messagesRef.current.scrollIntoView({ behavior: 'smooth' })
+      setTimeout(() => {
+        messagesRef.current.scrollIntoView({ behavior: "smooth" });
+      }, 50);
     }
-  }, [messages])
+  }, [messages]);
 
-  const closeModal = () => setSelectedImage(null)
-
+  const closeModal = () => setSelectedImage(null);
 
   return (
     <>
@@ -40,38 +49,55 @@ const ChatContainer = () => {
       <div className="flex-1 px-6 overflow-y-auto py-8">
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-6">
-            {messages.map((msg) => (
-              <div
-                key={msg._id}
-                className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-              >
+            {messages.map((msg) => {
+              // ✅ Safe sender check
+              const isOwnMessage =
+                msg?.senderId && authUser?._id
+                  ? String(msg.senderId) === String(authUser._id)
+                  : false;
+
+              return (
                 <div
-                  className={`chat-bubble relative ${msg.senderId === authUser._id
-                    ? "bg-cyan-600 text-white"
-                    : "bg-slate-800 text-slate-200"
-                    }`}
+                  key={msg._id}
+                  className={`chat ${isOwnMessage ? "chat-end" : "chat-start"}`}
                 >
-                  {msg.images && (
-                    <img onClick={() => setSelectedImage(msg.images)} src={msg.images} alt="Shared" className="rounded-lg h-48 object-cover" />
-                  )}
-                  {msg.text && <p className="mt-2">{msg.text}</p>}
-                  <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
-                    {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <div
+                    className={`chat-bubble relative ${
+                      isOwnMessage
+                        ? "bg-cyan-600 text-white"
+                        : "bg-slate-800 text-slate-200"
+                    }`}
+                  >
+                    {msg.images && (
+                      <img
+                        onClick={() => setSelectedImage(msg.images)}
+                        src={msg.images}
+                        alt="Shared"
+                        className="rounded-lg h-48 object-cover"
+                      />
+                    )}
+
+                    {msg.text && <p className="mt-2">{msg.text}</p>}
+
+                    <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
+                      {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesRef} />
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : (
-          <NoChatHistoryPlaceholder name={selectedUser.fullname} />
+          <NoChatHistoryPlaceholder name={selectedUser?.fullname} />
         )}
       </div>
+
       <MessageInput />
 
       {selectedImage && (
@@ -81,7 +107,7 @@ const ChatContainer = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default ChatContainer
+export default ChatContainer;
