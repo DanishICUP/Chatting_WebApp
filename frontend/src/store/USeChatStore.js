@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { axiosInstance } from '../lib/Axios';
-// import { useAuthStore } from '../store/useAuthStore'
 import { toast } from 'react-hot-toast'
+import { useAuthStore } from './UseAuthStore';
+
 
 export const UseChatStore = create((set, get) => ({
     allContacts: [],
@@ -33,15 +34,84 @@ export const UseChatStore = create((set, get) => ({
         }
     },
 
-    getMyChatPartners: async() => {
+    getMyChatPartners: async () => {
         try {
             const res = await axiosInstance.get('/messages/chats')
-            set({chats: res.data})
+            set({ chats: res.data })
         } catch (error) {
             toast.error(error.response.data.message);
-        }finally{
+        } finally {
             set({ isUsersLoading: false });
         }
+    },
+
+    getMessagesByUserId: async (userId) => {
+        set({ isMessagesLoading: true })
+        try {
+            const res = await axiosInstance.get(`/messages/${userId}`)
+            set({ messages: res.data })
+
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong");
+        } finally {
+            set({ isMessagesLoading: false })
+        }
+    },
+
+    sendMessage: async (messagesData) => {
+        const { selectedUser, messages } = get()
+        const { authUser } = useAuthStore.getState()
+
+        const tempId = `temp-${Date.now()}`;
+
+        const optimisticMessage = {
+            _id: tempId,
+            senderId: authUser._id,
+            receiverId: selectedUser._id,
+            text: messagesData.text,
+            image: messagesData.image,
+            createdAt: new Date().toISOString(),
+            isOptimistic: true, // flag to identify optimistic messages (optional)
+        };
+
+        set({ messages: [...messages, optimisticMessage] })
+        try {
+            const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messagesData)
+            set({ messages: messages.concat(res.data) })
+        } catch (error) {
+            set({ messages: messages });
+            toast.error(error.response?.data?.message || "Something went wrong");
+        }
+    },
+    subscribeToMessages: () => {
+        try {
+            const { selectedUser, isSoundEnabled } = get()
+            if (!selectedUser) return
+
+            const socket = useAuthStore.getState().socket
+
+            socket.on("newMessages", (newMessages) => {
+                const isMessagesendSelectedUSer = newMessages.senderId === selectedUser._id
+                if (!isMessagesendSelectedUSer) return
+
+                const currentMessages = get().messages
+                set({ messages: [...currentMessages, newMessages] })
+
+                if (isSoundEnabled) {
+                    const notificationSound = new Audio('/sounds/notification.mp3')
+
+                    notificationSound.currentTime = 0
+                    notificationSound.play().catch((e) => console.log("Audio play failed", e))
+                }
+            })
+        } catch (error) {
+            console.log('error while subscribing user ',error)
+        }
+    },
+
+    unsubscribeFromMessages: () => {
+        const socket = useAuthStore.getState().socket
+        socket.off("newMessages")
     }
 
 }))

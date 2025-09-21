@@ -7,9 +7,11 @@ const ProfileHeader = () => {
 
   const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
-  const { authUser, logout, updateProfile } = useAuthStore()
-  const { isSoundEnabled, toggleSound } = UseChatStore()
+  const { authUser, logout, updateProfile,  } = useAuthStore()
+  const { isSoundEnabled, toggleSound,  } = UseChatStore()
   const [selectedImg, setSelectedImg] = useState(null);
+
+  // const isOnline = onlineUsers.includes(selectedUser._id.toString());
 
   const fileInputRef = useRef(null);
 
@@ -62,7 +64,7 @@ const ProfileHeader = () => {
               {authUser.fullname}
             </h3>
 
-            <p className="text-slate-400 text-xs">Online</p>
+            <p className="text-slate-400 text-xs"></p>
           </div>
         </div>
 

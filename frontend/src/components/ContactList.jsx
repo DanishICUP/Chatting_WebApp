@@ -24,10 +24,18 @@ const ContactList = () => {
           onClick={() => setSelectedUser(contact)}
         >
           <div className="flex items-center gap-3">
-            <div className={`avatar ${onlineUsers.includes(contact._id) ? "online" : "offline"}`}>
+            <div className="indicator">
+              
+              {onlineUsers.includes(contact._id.toString()) ? (
+                <span className="badge badge-success badge-xs indicator-item indicator-top"></span>
+              ) : (
+                <span className="badge badge-neutral badge-xs indicator-item indicator-top"></span>
+              )}
+              
               <div className="size-12 rounded-full">
                 <img src={contact.profilepic || "/avatar.png"} />
               </div>
+
             </div>
             <h4 className="text-slate-200 font-medium">{contact.fullname}</h4>
           </div>
