@@ -52,16 +52,16 @@ const ChatContainer = () => {
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+                className={`chat ${msg.senderId?.toString() === authUser?._id?.toString() ? "chat-end" : "chat-start"}`}
               >
                 <div
                   className={`chat-bubble relative ${msg.senderId === authUser._id
-                      ? "bg-cyan-600 text-white"
-                      : "bg-slate-800 text-slate-200"
+                    ? "bg-cyan-600 text-white"
+                    : "bg-slate-800 text-slate-200"
                     }`}
                 >
-                  {msg.image && (
-                    <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover" />
+                  {msg.images && (
+                    <img src={msg.images} alt="Shared" className="rounded-lg h-48 object-cover" />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
                   <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
